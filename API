@@ -1,0 +1,58 @@
+//Here’s a simple plan for integrating APIs into your travel app for tourists:
+
+//  Useful APIs:-
+
+//For a travel app, useful APIs could include:
+
+//Google Maps API – For maps, places, directions, and geolocation services.
+
+//OpenWeatherMap API – To provide weather updates.
+
+//TripAdvisor API or Yelp API – For nearby attractions, hotels, restaurants.
+
+//Currency Conversion APIs – Like Fixer.io API for live exchange rates.
+
+//Flight / Hotel Booking APIs – Like Amadeus or Skyscanner API for booking information.
+
+//Public Transport APIs – For local transport info (depends on the country or city).
+
+
+Google Maps API
+1️⃣ Register and get an API key:
+
+Visit Google Cloud Console
+.
+
+Create a project and enable Maps JavaScript API and Places API.
+
+Get the API key.
+
+2️⃣ Sample HTML + JavaScript Code:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tourist Travel App Map</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+</head>
+<body>
+    <h1>Tourist Guide Map</h1>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+
+    <script>
+        function initMap() {
+            const touristSpot = { lat: 48.8584, lng: 2.2945 };  // Example: Eiffel Tower
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 14,
+                center: touristSpot
+            });
+            const marker = new google.maps.Marker({
+                position: touristSpot,
+                map: map,
+                title: 'Eiffel Tower'
+            });
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>
