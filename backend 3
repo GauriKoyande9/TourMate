@@ -1,0 +1,134 @@
+=========================== Tour & Travel App Backend with Authentication and CRUD ===========================
+Node.js (Express) + MySQL Version with JWT Auth
+Folder structure:
+tour-travel-app/
+├── backend/
+│   ├── package.json
+│   ├── server.js
+│   ├── db.js
+│   ├── routes/
+│   │   ├── health.js
+│   │   ├── auth.js
+│   │   └── users.js
+│   ├── models/
+│   │   ├── Tour.js
+│   │   └── User.js
+│   └── docs/
+│       └── api_reference.md
+package.json (add JWT & bcrypt):
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "sequelize": "^6.32.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
+db.js (same as before)
+models/User.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db');
+const bcrypt = require('bcrypt');
+
+const User = sequelize.define('User', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  username: { type: DataTypes.STRING, allowNull: false, unique: true },
+  password: { type: DataTypes.STRING, allowNull: false }
+}, { tableName: 'users' });
+
+User.beforeCreate(async (user) => {
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
+});
+
+sequelize.sync({ force: true }).then(() => console.log('User table synced.'));
+module.exports = User;
+routes/auth.js (JWT login/register):
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+const SECRET = 'your_jwt_secret';
+
+router.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.create({ username, password });
+  res.json({ message: 'User registered', user });
+});
+
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ where: { username } });
+  if (!user) return res.status(400).json({ message: 'User not found' });
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(400).json({ message: 'Invalid password' });
+  const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '1h' });
+  res.json({ token });
+});
+
+module.exports = router;
+routes/users.js (CRUD for users):
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const SECRET = 'your_jwt_secret';
+
+const authMiddleware = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+  jwt.verify(token, SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ message: 'Invalid token' });
+    req.user = decoded;
+    next();
+  });
+};
+
+router.get('/', authMiddleware, async (req, res) => {
+  const users = await User.findAll();
+  res.json(users);
+});
+
+router.get('/:id', authMiddleware, async (req, res) => {
+  const user = await User.findByPk(req.params.id);
+  res.json(user);
+});
+
+router.put('/:id', authMiddleware, async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findByPk(req.params.id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (username) user.username = username;
+  if (password) user.password = await bcrypt.hash(password, 10);
+  await user.save();
+  res.json(user);
+});
+
+router.delete('/:id', authMiddleware, async (req, res) => {
+  const user = await User.findByPk(req.params.id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  await user.destroy();
+  res.json({ message: 'User deleted' });
+});
+
+module.exports = router;
+/docs/api_reference.md:
+# API Reference
+
+## Authentication
+POST /auth/register - Register new user
+POST /auth/login - Login user, returns JWT
+
+## Users
+GET /users - List all users (auth required)
+GET /users/:id - Get user by ID (auth required)
+PUT /users/:id - Update user (auth required)
+DELETE /users/:id - Delete user (auth required)
+________________________________________
+Instructions: 1. npm install 2. npm run dev 3. Test endpoints using Postman or curl with JWT in Authorization header. 4. Replace MySQL credentials in db.js. 5. MongoDB version can use same JWT/auth code by replacing Sequelize models with Mongoose schemas.
