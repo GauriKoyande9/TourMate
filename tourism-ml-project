@@ -1,0 +1,28 @@
+tourism-ml-project/
+│
+├── datasets/
+│   ├── raw/
+│   │   └── tourism_raw.csv
+│   └── processed/
+│       └── tourism_preprocessed.csv
+│
+├── notebooks/
+│   └── EDA_tourism.ipynb
+│
+├── reports/
+│   ├── summary_tourism.md
+│   └── summary_tourism.pdf
+│
+├── visualizations/
+│   ├── hist_total_amount.png
+│   ├── box_duration.png
+│   ├── corr_numeric.png
+│   └── dest_vs_revenue.png
+│
+├── extended_outputs/
+│   ├── preprocessing_pipeline.joblib
+│   ├── best_model_LogisticRegression.joblib
+│   └── model_evaluation.txt
+│
+├── requirements.txt   ← (I can create this for you if you don’t have it yet)
+└── README.md          ← (the file I gave you earlier)
