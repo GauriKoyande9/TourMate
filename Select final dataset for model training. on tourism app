@@ -1,0 +1,27 @@
+✅ Final Dataset Selection for Tourism Model
+
+Source: The cleaned + preprocessed tourism dataset we built (after handling missing values, normalizing, encoding, and dropping duplicates).
+
+Target Variable (Y): Depends on your app’s use case, e.g.:
+
+Tourist arrivals (forecasting)
+
+Tourism spend (prediction)
+
+User preference (recommendation)
+
+Features (X):
+
+Demographics – age group, nationality, traveler type (solo, family, business).
+
+Location Data – destination, region, attractions visited.
+
+Seasonality – month, season, weather conditions.
+
+Travel Attributes – duration of stay, accommodation type, transport mode.
+
+Cost & Spend – average spend per trip, package price.
+
+Engagement – reviews, ratings, repeat visits (if available).
+
+Exclusions: Removed irrelevant IDs, highly correlated features (like “state_code” vs “state_name”), free-text columns that aren’t useful without NLP.
