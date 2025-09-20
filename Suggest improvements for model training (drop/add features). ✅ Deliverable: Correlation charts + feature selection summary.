@@ -1,0 +1,172 @@
+import pandas as pd
+import numpy as np
+import joblib
+import os
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
+
+# =====================
+# 1. Load Dataset
+# =====================
+df = pd.read_csv("tourism_final.csv")  # <-- update path accordingly
+
+# =====================
+# 2. Validate Dataset Quality
+# =====================
+print("\n=== Dataset Quality Check ===")
+
+# Shape
+print("Rows:", df.shape[0], "Columns:", df.shape[1])
+
+# Missing values
+missing = df.isnull().sum()
+print("\nMissing Values:\n", missing[missing > 0])
+
+# Duplicates
+duplicates = df.duplicated().sum()
+print("\nDuplicate Rows:", duplicates)
+
+# Data types
+print("\nData Types:\n", df.dtypes)
+
+# Basic statistics
+print("\nSummary Statistics:\n", df.describe(include='all').transpose())
+
+# Class/Target distribution (for classification)
+target = 'tourist_count'  # Update if classification task
+if target in df.columns and df[target].dtype == 'object':
+    print("\nTarget Distribution:\n", df[target].value_counts())
+
+# =====================
+# 3. Correlation Analysis
+# =====================
+print("\n=== Feature Correlation Analysis ===")
+
+# Correlation matrix
+corr_matrix = df.corr(numeric_only=True)
+plt.figure(figsize=(12, 8))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Feature Correlation Heatmap")
+plt.show()
+
+# Pairplot for key features
+key_features = df.select_dtypes(include=[np.number]).columns[:5]  # first 5 numeric features
+if len(key_features) > 1:
+    sns.pairplot(df[key_features])
+    plt.suptitle("Pairplot of Key Features", y=1.02)
+    plt.show()
+
+# =====================
+# 4. Define Features & Target
+# =====================
+target = 'tourist_count'  # Update if classification task
+target = target.strip()
+features = [col for col in df.columns if col != target]
+
+X = df[features]
+y = df[target]
+
+# Split dataset
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
+# =====================
+# 5. Train Baseline Models
+# =====================
+model = None
+
+if y.dtype.kind in 'ifu':
+    # Regression Baselines
+    print("\n=== Regression Baselines ===")
+
+    # Linear Regression
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+    preds = lr.predict(X_val)
+    print("LinearRegression:",
+          "MAE=", mean_absolute_error(y_val, preds),
+          "RMSE=", np.sqrt(mean_squared_error(y_val, preds)),
+          "R2=", r2_score(y_val, preds))
+
+    # Decision Tree Regressor
+    dt = DecisionTreeRegressor(random_state=42)
+    dt.fit(X_train, y_train)
+    preds = dt.predict(X_val)
+    print("DecisionTreeRegressor:",
+          "MAE=", mean_absolute_error(y_val, preds),
+          "RMSE=", np.sqrt(mean_squared_error(y_val, preds)),
+          "R2=", r2_score(y_val, preds))
+
+    # Save best performing model (example: DecisionTree)
+    model = dt
+
+else:
+    # Classification Baselines
+    print("\n=== Classification Baselines ===")
+
+    # Logistic Regression
+    log_reg = LogisticRegression(max_iter=1000)
+    log_reg.fit(X_train, y_train)
+    preds = log_reg.predict(X_val)
+    print("LogisticRegression:",
+          "Accuracy=", accuracy_score(y_val, preds),
+          "Precision=", precision_score(y_val, preds, average='weighted'),
+          "Recall=", recall_score(y_val, preds, average='weighted'),
+          "F1=", f1_score(y_val, preds, average='weighted'))
+
+    # Decision Tree Classifier
+    dt_clf = DecisionTreeClassifier(random_state=42)
+    dt_clf.fit(X_train, y_train)
+    preds = dt_clf.predict(X_val)
+    print("DecisionTreeClassifier:",
+          "Accuracy=", accuracy_score(y_val, preds),
+          "Precision=", precision_score(y_val, preds, average='weighted'),
+          "Recall=", recall_score(y_val, preds, average='weighted'),
+          "F1=", f1_score(y_val, preds, average='weighted'))
+
+    # Save best performing model (example: DecisionTree)
+    model = dt_clf
+
+# =====================
+# 6. Save Model Prototype
+# =====================
+os.makedirs("ml_models", exist_ok=True)
+model_path = os.path.join("ml_models", "baseline_model.pkl")
+if model:
+    joblib.dump(model, model_path)
+    print(f"\n✅ Baseline model saved at: {model_path}")
+
+# =====================
+# 7. Final Test Evaluation
+# =====================
+if model:
+    print("\n=== Test Set Evaluation ===")
+    test_preds = model.predict(X_test)
+
+    if y.dtype.kind in 'ifu':
+        print("Test Results:",
+              "MAE=", mean_absolute_error(y_test, test_preds),
+              "RMSE=", np.sqrt(mean_squared_error(y_test, test_preds)),
+              "R2=", r2_score(y_test, test_preds))
+    else:
+        print("Test Results:",
+              "Accuracy=", accuracy_score(y_test, test_preds),
+              "Precision=", precision_score(y_test, test_preds, average='weighted'),
+              "Recall=", recall_score(y_test, test_preds, average='weighted'),
+              "F1=", f1_score(y_test, test_preds, average='weighted'))
+
+
+
+💡 I’ve suggested:
+
+Dropping redundant features (based on correlation).
+
+Adding engineered features (seasonality index, cost per day, peak season flag).
+
+Including a feature importance chart.
+
+Writing a feature selection summary report.
