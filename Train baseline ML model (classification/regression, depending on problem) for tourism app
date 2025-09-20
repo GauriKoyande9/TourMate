@@ -1,0 +1,153 @@
+✅ Step 1: Problem Type
+
+If target = tourist_count (numeric) → Regression
+
+If target = tourist_preference / rating / destination_choice (categorical) → Classification
+
+👉 Since earlier we defined tourist_count as a practical target, this will be a Regression Problem.
+
+✅ Step 2: Dataset Setup
+
+Features (X): demographics, location, seasonality, trip attributes, spend, engagement.
+
+Target (Y): tourist_count
+
+Split:
+
+Train (70%)
+
+Validation (15%)
+
+Test (15%)
+
+✅ Step 3: Baseline Models
+
+We’ll train simple baseline models first before tuning:
+
+Regression Baselines:
+
+LinearRegression
+
+DecisionTreeRegressor
+
+RandomForestRegressor (baseline ensemble)
+
+Classification Baselines (if target were categorical):
+
+LogisticRegression
+
+DecisionTreeClassifier
+
+RandomForestClassifier
+
+✅ Step 4: Evaluation Metrics
+
+Regression:
+
+MAE (Mean Absolute Error)
+
+RMSE (Root Mean Squared Error)
+
+R² (coefficient of determination)
+
+Classification (alternative case):
+
+Accuracy
+
+Precision, Recall, F1
+
+ROC-AUC
+
+✅ Step 5: Next Steps
+
+I can create a Python notebook that:
+
+Loads the final dataset.
+
+Splits into Train/Val/Test.
+
+Trains baseline models (Linear Regression, Decision Tree).
+
+Prints baseline metrics.
+
+
+
+Baseline Tourism Model
+· python
+import pandas as pd
+# Replace with your dataset path
+# Example: df = pd.read_csv("/datasets/final/tourism_train.csv")
+df = pd.read_csv("tourism_final.csv")  # <-- update path accordingly
+
+
+# =====================
+# 2. Define Features & Target
+# =====================
+# Example target: tourist_count (regression)
+# If you have categorical target like destination_choice, switch to classification
+target = 'tourist_count'
+features = [col for col in df.columns if col != target]
+
+
+X = df[features]
+y = df[target]
+
+
+# Train/Validation/Test split
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
+
+# =====================
+# 3. Train Baseline Models
+# =====================
+if y.dtype.kind in 'ifu':
+    # Regression Baselines
+    print("\n=== Regression Baselines ===")
+
+
+    # Linear Regression
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+    preds = lr.predict(X_val)
+    print("LinearRegression:",
+          "MAE=", mean_absolute_error(y_val, preds),
+          "RMSE=", np.sqrt(mean_squared_error(y_val, preds)),
+          "R2=", r2_score(y_val, preds))
+
+
+    # Decision Tree Regressor
+    dt = DecisionTreeRegressor(random_state=42)
+    dt.fit(X_train, y_train)
+    preds = dt.predict(X_val)
+    print("DecisionTreeRegressor:",
+          "MAE=", mean_absolute_error(y_val, preds),
+          "RMSE=", np.sqrt(mean_squared_error(y_val, preds)),
+          "R2=", r2_score(y_val, preds))
+
+
+else:
+    # Classification Baselines
+    print("\n=== Classification Baselines ===")
+
+
+    # Logistic Regression
+    log_reg = LogisticRegression(max_iter=1000)
+    log_reg.fit(X_train, y_train)
+    preds = log_reg.predict(X_val)
+    print("LogisticRegression:",
+          "Accuracy=", accuracy_score(y_val, preds),
+          "Precision=", precision_score(y_val, preds, average='weighted'),
+          "Recall=", recall_score(y_val, preds, average='weighted'),
+          "F1=", f1_score(y_val, preds, average='weighted'))
+
+
+    # Decision Tree Classifier
+    dt_clf = DecisionTreeClassifier(random_state=42)
+    dt_clf.fit(X_train, y_train)
+    preds = dt_clf.predict(X_val)
+    print("DecisionTreeClassifier:",
+          "Accuracy=", accuracy_score(y_val, preds),
+          "Precision=", precision_score(y_val, preds, average='weighted'),
+          "Recall=", recall_score(y_val, preds, average='weighted'),
+          "F1=", f1_score(y_val, preds, average='weighted'))
